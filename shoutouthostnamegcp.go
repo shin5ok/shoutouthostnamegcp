@@ -1,6 +1,7 @@
 package shoutouthostnamegcp
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/url"
 	"os"
@@ -35,12 +36,26 @@ func Get() string {
 
 func SetSigHandler(slackAPI, slackChannel string) {
 	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGTERM)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
+	type slackStruct struct {
+		Payload string `json:"text"`
+		Channel string `json:"channel"`
+	}
 
 	go func() {
+		<-sigs
 		message := Get()
-		http.PostForm(slackAPI, url.Values{"message": {message}, "slack_channel": {slackChannel}})
+		postData := slackStruct{}
+		postData.Payload = message
+		postData.Channel = "#" + slackChannel
+		postDataJson, _ := json.Marshal(&postData)
+		resp, err := http.PostForm(slackAPI, url.Values{"payload": {string(postDataJson)}})
+		if err != nil {
+			log.Error().Err(err)
+		}
 		log.Info().Str("slackapi", slackAPI).Str("slackchannel", slackChannel).Send()
+		log.Info().Msgf("%+v", resp)
 		log.Info().Msg("catch the signal")
 	}()
 }
