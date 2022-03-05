@@ -57,5 +57,6 @@ func SetSigHandler(slackAPI, slackChannel string) {
 		}
 		log.Info().Str("slackapi", slackAPI).Str("slackchannel", slackChannel).Send()
 		log.Info().Msgf("%+v", resp)
+		os.Exit(0)
 	}()
 }
