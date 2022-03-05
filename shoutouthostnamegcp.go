@@ -39,14 +39,16 @@ func SetSigHandler(slackAPI, slackChannel string) {
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGHUP, syscall.SIGTERM)
 
-	type slackStruct struct {
-		Payload string `json:"text"`
-		Channel string `json:"channel"`
-	}
-
 	go func() {
+
+		type slackStruct struct {
+			Payload string `json:"text"`
+			Channel string `json:"channel"`
+		}
+
 		s := <-sigs
-		message := fmt.Sprintf("%s on %s", s.String(), Get())
+		message := fmt.Sprintf("%s:%s", s.String(), Get())
+
 		log.Info().Msg(message)
 		postData := slackStruct{}
 		postData.Payload = message
