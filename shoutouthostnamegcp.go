@@ -47,6 +47,7 @@ func SetSigHandler(slackAPI, slackChannel string) {
 	go func() {
 		s := <-sigs
 		message := fmt.Sprintf("%s on %s", s.String(), Get())
+		log.Info().Msg(message)
 		postData := slackStruct{}
 		postData.Payload = message
 		postData.Channel = "#" + slackChannel
