@@ -12,11 +12,7 @@ import (
 
 	"cloud.google.com/go/compute/metadata"
 	"github.com/rs/zerolog"
-
-	// "github.com/rs/zerolog/log"
 	log "github.com/rs/zerolog/log"
-	// "google.golang.org/grpc/metadata"
-	// "github.com/gin-gonic/gin"
 )
 
 func init() {
@@ -53,7 +49,11 @@ func SetSigHandler(slackAPI, slackChannel string) {
 		postData := slackStruct{}
 		postData.Payload = message
 		postData.Channel = "#" + slackChannel
-		postDataJson, _ := json.Marshal(&postData)
+		postDataJson, err := json.Marshal(&postData)
+		if err != nil {
+			log.Error().Err(err)
+			postDataJson = []byte(fmt.Sprintf("{'text':'%s', 'channel':'#%s'}", err, slackChannel))
+		}
 		resp, err := http.PostForm(slackAPI, url.Values{"payload": {string(postDataJson)}})
 		if err != nil {
 			log.Error().Err(err)
